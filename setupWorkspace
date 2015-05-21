@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+#########################################################################################
+##
+## Eternal Items git initialiser script for Unix
+##
+#########################################################################################
+
+NAME="CaveOres"
+
+printMessage ( ) {
+    echo
+    echo "  $*"
+}
+
+tryExecute ( ) {
+    echo "  --$*"
+    $*
+    EXIT_CODE=$?
+    echo
+    if [ $EXIT_CODE != 0 ] ; then
+       echo "  Failed with code "$EXIT_CODE", exiting..."
+       exit 1
+    else
+       echo "  Completed with exit code $?"
+    fi
+}
+
+if [ "$1" = "build" ] ; then
+  printMessage "Building the jar files of $NAME"
+else
+  printMessage "Setting up $NAME for development"
+fi
+
+printMessage "Initialising submodules..."
+tryExecute "git submodule init"
+printMessage "Updating submodules..."
+tryExecute "git submodule update"
+printMessage "Setting up AlexIILLib..."
+cd ./AlexIILLib/
+tryExecute "./gradlew setupCIWorkspace"
+printMessage "Building AlexIILLib..."
+tryExecute "./gradlew build"
+cd ..
+printMessage "Setting Up $NAME..."
+if [ "$1" = "build" ]; then
+    tryExecute "./gradlew setupCIWorkspace"
+    printMessage "Building $NAME..."
+    tryExecute "./gradlew build"
+    if [ "$2" = "version" ]; then
+        printMessage "Setting up Version Info..."
+        git clone https://github.com/AlexIIL/VersionInfo.git
+        printMessage "Building version Info..."
+        cd VersionInfo
+        tryExecute "./gradlew build"
+        cd build/libs
+        printMessage "Running Version Info..."
+        tryExecute "java -jar VersionInfo.jar AlexIIL $NAME"
+    fi
+    printMessage "Build Complete!"
+else
+    tryExecute "./gradlew setupDecompWorkspace"
+    printMessage "Generating Eclipse Workspace Files..."
+    tryExecute "./gradlew eclipse"
+    printMessage "Generating Idea Project Files"
+    tryExecute "./gradlew idea"
+    printMessage "Setup complete!"
+fi

@@ -1,0 +1,16 @@
+[
+{
+  "modid": "<NAME>",
+  "name": "<MOD_NAME>",
+  "description": "<DESCRIPTION>",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["AlexIIL"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": ["required-after:alexiillib"]
+}
+]

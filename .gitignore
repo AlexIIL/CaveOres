@@ -1,0 +1,16 @@
+/bin/
+/testing/
+/.gradle/
+/.project
+/.classpath
+/.settings/
+/eclipse/
+/serverTest/
+
+
+/*.iml
+/*.ipr
+/*.iws
+/out/
+/build/
+/VersionInfo/
