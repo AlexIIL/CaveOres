@@ -1,13 +1,12 @@
 package alexiil.mods.ores;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.event.terraingen.OreGenEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-
-import alexiil.mods.lib.SearchBox;
 
 public class CaveEventListener {
     public static final CaveEventListener INSTANCE = new CaveEventListener();
@@ -17,10 +16,13 @@ public class CaveEventListener {
         World world = event.world;
         BlockPos eventPos = event.pos;
         Chunk chunk = world.getChunkFromBlockCoords(eventPos);
-        SearchBox box = new SearchBox(eventPos, eventPos.add(15, 0, 15));
-        for (BlockPos pos : box) {
-            
-        }
 
+        for (BlockPos pos : SearchUtils.searchChunk(chunk)) {
+            IBlockState b = world.getBlockState(pos);
+            if (OreBlockHandler.isOre(b))
+                for (BlockPos pos2 : SearchUtils.searchAround(pos)) {
+
+                }
+        }
     }
 }
