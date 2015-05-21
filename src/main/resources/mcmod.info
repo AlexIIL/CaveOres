@@ -1,8 +1,8 @@
 [
 {
-  "modid": "<NAME>",
-  "name": "<MOD_NAME>",
-  "description": "<DESCRIPTION>",
+  "modid": "CaveOres",
+  "name": "Cave Ores",
+  "description": "",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
