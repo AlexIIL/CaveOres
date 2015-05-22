@@ -1,16 +1,11 @@
 package alexiil.mods.ores;
 
-import java.util.List;
-
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.event.terraingen.OreGenEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-
-import com.google.common.collect.Lists;
 
 import alexiil.mods.lib.SearchUtils;
 
@@ -23,14 +18,11 @@ public class CaveEventListener {
         BlockPos eventPos = event.pos;
         Chunk chunk = world.getChunkFromBlockCoords(eventPos);
 
-        List<BlockPos> okPositions = Lists.newArrayList();
-
         for (BlockPos pos : SearchUtils.searchChunk(chunk)) {
-            IBlockState b = world.getBlockState(pos);
-            if (OreBlockHandler.isOre(b))
-                for (BlockPos pos2 : SearchUtils.searchAround(pos)) {
+              SearchUtils.searchAround(pos, 5);
 
-                }
+            // TODO: make this search around for 5 blocks to find valid air, or valid ore blocks that are next to air
+            // HINT: Use the updated SearchUtils.searchAround(pos,radius)
         }
     }
 }
