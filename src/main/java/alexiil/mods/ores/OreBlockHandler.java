@@ -12,6 +12,7 @@ public class OreBlockHandler {
 
     /** Call this with an ore that you would like to only generate higher next to caves. */
     public static void addOre(IBlockState state) {
+        CaveOres.INSTANCE.log.info("Added " + state + " as an ore");
         ores.add(state);
     }
 
@@ -23,7 +24,17 @@ public class OreBlockHandler {
         }
     }
 
+    private static List<IBlockState> list = Lists.newArrayList();
+
     public static boolean isOre(IBlockState state) {
-        return ores.contains(state);
+        if (list.contains(state)) {
+            return ores.contains(state);
+        }
+        else {
+            list.add(state);
+            boolean isOre = ores.contains(state);
+            CaveOres.INSTANCE.log.info(isOre + " -> " + state);
+            return isOre;
+        }
     }
 }

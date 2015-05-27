@@ -1,5 +1,9 @@
 package alexiil.mods.ores;
 
+import java.util.Random;
+
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -15,14 +19,37 @@ public class CaveEventListener {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void event(OreGenEvent.Post event) {
         World world = event.world;
-        BlockPos eventPos = event.pos;
-        Chunk chunk = world.getChunkFromBlockCoords(eventPos);
+        Chunk chunk = world.getChunkFromBlockCoords(event.pos);
+        Random rand = event.rand;
+        CaveOres.INSTANCE.log.info("Searching for ores in " + event.pos);
+
+        int i = 0;
 
         for (BlockPos pos : SearchUtils.searchChunk(chunk)) {
-              SearchUtils.searchAround(pos, 5);
+            searchBlocksInChunk(world, rand, pos);
+            i++;
+        }
+        CaveOres.INSTANCE.log.info(i);
+    }
 
-            // TODO: make this search around for 5 blocks to find valid air, or valid ore blocks that are next to air
-            // HINT: Use the updated SearchUtils.searchAround(pos,radius)
+    private void searchBlocksInChunk(World world, Random rand, BlockPos pos) {
+        IBlockState block = world.getBlockState(pos);
+        if (!OreBlockHandler.isOre(block))
+            return;
+        boolean foundAir = false;
+        CaveOres.INSTANCE.log.info("Found ore at " + pos);
+        for (BlockPos around : SearchUtils.searchAround(pos, 5)) {
+            if (world.isAirBlock(around)) {
+                CaveOres.INSTANCE.log.info("Found air at " + around);
+                foundAir = true;
+                break;
+            }
+        }
+        if (!foundAir) {
+            double dbl = rand.nextDouble();
+            if (dbl < 0.75D) {
+                world.setBlockState(pos, Blocks.stone.getDefaultState(), 0);
+            }
         }
     }
 }
