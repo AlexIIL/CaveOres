@@ -1,55 +1,110 @@
 package alexiil.mods.ores;
 
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.ChunkProviderSettings;
+import net.minecraft.world.gen.feature.WorldGenerator;
 import net.minecraftforge.event.terraingen.OreGenEvent;
+import net.minecraftforge.event.terraingen.OreGenEvent.GenerateMinable;
+import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import com.google.common.collect.Maps;
+
 import alexiil.mods.lib.SearchUtils;
+import alexiil.mods.ores.OreManager.IBlockChooser;
+import alexiil.mods.ores.OreManager.OreInfo;
 
 public class CaveEventListener {
     public static final CaveEventListener INSTANCE = new CaveEventListener();
+    private static final ThreadLocal<Map<WorldGenerator, OreInfo>> worldGens = new ThreadLocal<Map<WorldGenerator, OreInfo>>();
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void event(OreGenEvent.Post event) {
-        World world = event.world;
-        Chunk chunk = world.getChunkFromBlockCoords(event.pos);
-        Random rand = event.rand;
-        CaveOres.INSTANCE.log.info("Searching for ores in " + event.pos);
-
-        int i = 0;
-
-        for (BlockPos pos : SearchUtils.searchChunk(chunk)) {
-            searchBlocksInChunk(world, rand, pos);
-            i++;
-        }
-        CaveOres.INSTANCE.log.info(i);
+    private static Map<WorldGenerator, OreInfo> getMap() {
+        if (worldGens.get() != null)
+            return worldGens.get();
+        Map<WorldGenerator, OreInfo> map = Maps.newHashMap();
+        worldGens.set(map);
+        return map;
     }
 
-    private void searchBlocksInChunk(World world, Random rand, BlockPos pos) {
-        IBlockState block = world.getBlockState(pos);
-        if (!OreBlockHandler.isOre(block))
-            return;
-        boolean foundAir = false;
-        CaveOres.INSTANCE.log.info("Found ore at " + pos);
-        for (BlockPos around : SearchUtils.searchAround(pos, 5)) {
-            if (world.isAirBlock(around)) {
-                CaveOres.INSTANCE.log.info("Found air at " + around);
-                foundAir = true;
-                break;
+    @SubscribeEvent
+    public void genTerrain(GenerateMinable event) {
+        OreInfo oreInfo = OreManager.getOre(event.type);
+        if (oreInfo != null) {
+            event.setResult(Result.DENY);
+            getMap().put(event.generator, oreInfo);
+        }
+    }
+
+    private long l = 0;
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void pre(OreGenEvent.Pre event) {
+        l = System.currentTimeMillis();
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void oreGenPost(OreGenEvent.Post event) {
+        Map<WorldGenerator, OreInfo> worldGen = getMap();
+        fails = 0;
+        retrys = 0;
+        World world = event.world;
+        BlockPos pos = event.pos;
+        Random rand = event.rand;
+
+        String s = world.getWorldInfo().getGeneratorOptions();
+        if (s == null)
+            s = "";
+        ChunkProviderSettings cps = ChunkProviderSettings.Factory.func_177865_a(s).func_177864_b();
+
+        for (Entry<WorldGenerator, OreInfo> genInfo : worldGen.entrySet()) {
+            generatePart(world, pos, rand, cps, genInfo);
+        }
+        worldGen.clear();
+
+        l -= System.currentTimeMillis();
+        CaveOres.INSTANCE.log.info("Ore generation took " + -l + "ms, with " + fails + " fails and " + retrys + " retrys");
+    }
+
+    int fails = 0;
+    int retrys = 0;
+
+    private void generatePart(World world, BlockPos pos, Random rand, ChunkProviderSettings cps, Entry<WorldGenerator, OreInfo> genInfo) {
+        OreInfo info = genInfo.getValue();
+        WorldGenerator gen = genInfo.getKey();
+        IBlockChooser chooser = info.getChooser(cps);
+        int failsLeft = 4096;
+
+        for (int oresGenerated = 0; oresGenerated < info.getCount(cps); oresGenerated++) {
+            if (failsLeft <= 0) {
+                BlockPos aPos = chooser.getPos(pos, rand);
+                gen.generate(world, rand, aPos);
+                fails++;
+            }
+            else if (!tryGenerateOre(world, pos, rand, chooser, gen)) {
+                failsLeft--;
+                oresGenerated--;
+                retrys++;
             }
         }
-        if (!foundAir) {
-            double dbl = rand.nextDouble();
-            if (dbl < 0.75D) {
-                world.setBlockState(pos, Blocks.stone.getDefaultState(), 0);
+    }
+
+    /** @return <code>True</code> if the ore was generated successfully */
+    private boolean tryGenerateOre(World world, BlockPos origin, Random rand, IBlockChooser chooser, WorldGenerator gen) {
+        BlockPos oreLocation = chooser.getPos(origin, rand);
+        for (BlockPos search : SearchUtils.searchFaces(oreLocation)) {
+            if (!world.getChunkProvider().chunkExists(search.getX() >> 4, search.getZ() >> 4))
+                continue;
+            if (world.isAirBlock(search)) {
+                gen.generate(world, rand, oreLocation);
+                return true;
             }
         }
+        return false;
     }
 }
