@@ -9,7 +9,7 @@
   "updateUrl": "",
   "authorList": ["AlexIIL"],
   "credits": "",
-  "logoFile": "",
+  "logoFile": "assets/caveores/textures/logo.png",
   "screenshots": [],
   "dependencies": ["required-after:alexiillib"]
 }
