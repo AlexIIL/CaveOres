@@ -53,12 +53,17 @@ public class CaveEventListener {
             event.setResult(Result.DENY);
             getMap().put(event.generator, oreInfo);
         }
+
+        if (oreInfo == OreManager.QUARTZ) {
+            oreGenPre(new OreGenEvent.Pre(event.world, event.rand, event.pos));
+            oreGenPost(new OreGenEvent.Post(event.world, event.rand, event.pos));
+        }
     }
 
     private long l = 0;
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void pre(OreGenEvent.Pre event) {
+    public void oreGenPre(OreGenEvent.Pre event) {
         l = System.currentTimeMillis();
     }
 
@@ -68,6 +73,7 @@ public class CaveEventListener {
         fails = 0;
         retrys = 0;
         World world = event.world;
+        world.theProfiler.startSection("caveOreGen");
         BlockPos pos = event.pos;
         Chunk chunk = world.getChunkFromBlockCoords(pos);
         Random rand = event.rand;
@@ -103,6 +109,8 @@ public class CaveEventListener {
         l -= System.currentTimeMillis();
         CaveOres.INSTANCE.log.info("Ore generation took " + -l + "ms, with " + fails + " fails,  " + retrys + " retrys, " + preSize + "," + postSize
             + " sizes");
+
+        world.theProfiler.endSection();
     }
 
     int fails = 0;

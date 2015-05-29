@@ -12,6 +12,7 @@ import com.google.common.collect.Maps;
 
 public class OreManager {
     private static final Map<GenerateMinable.EventType, OreInfo> ores = Maps.newHashMap();
+    public static final OreInfo QUARTZ;
 
     static {
         ores.put(GenerateMinable.EventType.COAL, new OreInfo() {
@@ -109,7 +110,7 @@ public class OreManager {
                 };
             }
         });
-        ores.put(GenerateMinable.EventType.QUARTZ, new OreInfo() {
+        ores.put(GenerateMinable.EventType.QUARTZ, QUARTZ = new OreInfo() {
             @Override
             public int getCount(ChunkProviderSettings cps) {
                 return 16;
