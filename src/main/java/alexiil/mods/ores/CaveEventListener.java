@@ -121,12 +121,15 @@ public class CaveEventListener {
         OreInfo info = genInfo.getValue();
         WorldGenerator gen = genInfo.getKey();
         IBlockChooser chooser = info.getChooser(cps);
-        int failsLeft = validPositions.size();
+        int failsLeft = validPositions.size() * 2;
 
-        for (int oresGenerated = 0; oresGenerated < info.getCount(cps); oresGenerated++) {
+        final int count = info.getCount(cps);
+        final int cave = Math.round(count * CaveOres.getPercentageCaved());
+        int normal = count - cave;
+
+        for (int oresGenerated = 0; oresGenerated < cave; oresGenerated++) {
             if (failsLeft <= 0 || validPositions.size() == 0) {
-                BlockPos aPos = chooser.getPos(pos, rand);
-                gen.generate(world, rand, aPos);
+                normal++;
                 fails++;
             }
             else if (!tryGenerateOre(world, rand, chooser, gen, validPositions)) {
@@ -134,6 +137,11 @@ public class CaveEventListener {
                 oresGenerated--;
                 retrys++;
             }
+        }
+
+        for (int i = 0; i < normal; i++) {
+            BlockPos aPos = chooser.getPos(pos, rand);
+            gen.generate(world, rand, aPos);
         }
     }
 

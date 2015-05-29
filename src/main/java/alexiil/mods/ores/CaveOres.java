@@ -13,12 +13,23 @@ public class CaveOres extends AlexIILMod {
     @Instance
     public static CaveOres INSTANCE;
 
+    private static float percentageCave = 1;
+
     @Override
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
         MinecraftForge.ORE_GEN_BUS.register(CaveEventListener.INSTANCE);
         MinecraftForge.TERRAIN_GEN_BUS.register(CaveEventListener.INSTANCE);
+
+        String comment = "The percentage of ores which will attempt to generate by caves instead of generating normally";
+        percentageCave = cfg.cfg().getFloat("percentageCave", "general", 100, 0, 100, comment) / 100F;
+
+        cfg.saveAll();
+    }
+
+    public static float getPercentageCaved() {
+        return percentageCave;
     }
 
     @Override
