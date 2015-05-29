@@ -10,8 +10,6 @@ import net.minecraftforge.event.terraingen.OreGenEvent.GenerateMinable;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
 
-import alexiil.version.api.VersionedApi;
-
 public class OreManager {
     private static final Map<GenerateMinable.EventType, OreInfo> ores = Maps.newHashMap();
 
@@ -102,6 +100,12 @@ public class OreManager {
                             y = 1;
                         return origin.add(rand.nextInt(16), y, rand.nextInt(16));
                     }
+
+                    @Override
+                    public boolean isValid(BlockPos pos) {
+                        int y = pos.getY();
+                        return y <= cps.lapisCenterHeight - cps.lapisSpread && y >= cps.lapisCenterHeight + cps.lapisSpread;
+                    }
                 };
             }
         });
@@ -140,7 +144,6 @@ public class OreManager {
         });
     }
 
-    @VersionedApi.Final
     public static abstract class OreInfo {
         private final Map<ChunkProviderSettings, IBlockChooser> choosers;
 
@@ -163,30 +166,31 @@ public class OreManager {
         protected abstract IBlockChooser createChooser(ChunkProviderSettings cps);
     }
 
-    @VersionedApi.Final
     public interface IBlockChooser {
         BlockPos getPos(BlockPos origin, Random rand);
+
+        boolean isValid(BlockPos pos);
     }
 
-    @VersionedApi.Final
     public static class DefaultBlockChooser implements IBlockChooser {
         private final int min, max;
 
-        @VersionedApi.Final
         public DefaultBlockChooser(int min, int max) {
             this.min = Math.min(min, 1);
             this.max = max;
         }
 
-        @Override
-        @VersionedApi.Final
         public BlockPos getPos(BlockPos origin, Random rand) {
             int y = rand.nextInt(max - min) + min;
             return origin.add(rand.nextInt(16), y, rand.nextInt(16));
         }
+
+        @Override
+        public boolean isValid(BlockPos pos) {
+            return pos.getY() >= min && pos.getY() <= max;
+        }
     }
 
-    @VersionedApi.Final
     public static OreInfo getOre(GenerateMinable.EventType type) {
         if (ores.containsKey(type))
             return ores.get(type);
