@@ -5,7 +5,7 @@ import java.util.function.Predicate;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockPos;
-import net.minecraft.world.chunk.ChunkPrimer;
+import net.minecraft.world.World;
 
 import alexiil.mods.ores.api.ICaveOreRegistry;
 import alexiil.mods.ores.api.IOreGenerator;
@@ -34,16 +34,23 @@ public enum CaveOreRegistry implements ICaveOreRegistry {
     }
 
     @Override
+    public void unregisterOre(IBlockState from, ICaveOre ore) {
+        if (!oreMap.containsKey(from)) return;
+        OreList list = oreMap.get(from);
+        list.ores.remove(ore);
+    }
+
+    @Override
     public void unregisterAll(IBlockState from) {
         oreMap.remove(from);
     }
 
-    public boolean genOre(ChunkPrimer primer, BlockPos pos, Random rand) {
-        IBlockState current = primer.getBlockState(pos.getX(), pos.getY(), pos.getZ());
+    public boolean genOre(World world, BlockPos pos, Random rand) {
+        IBlockState current = world.getBlockState(pos);
         if (!hasReplacementFor(current)) return false;
 
         OreList ore = oreMap.get(current);
-        return ore.genOre(primer, pos, rand);
+        return ore.genOre(world, pos, rand);
     }
 
     public boolean hasReplacementFor(IBlockState state) {
@@ -53,13 +60,16 @@ public enum CaveOreRegistry implements ICaveOreRegistry {
     private static class OreList {
         private final List<ICaveOre> ores = new ArrayList<>();
 
-        public boolean genOre(ChunkPrimer primer, BlockPos pos, Random rand) {
+        public boolean genOre(World world, BlockPos pos, Random rand) {
             int index = rand.nextInt(ores.size());
             if (index < 0) throw new IllegalStateException("Too few ores! " + ores.size());
+            // Perhaps this should be additive instead of multiplicative?
+            // (currently it has to be the right index and lower than the chance, but maybe just run through the list
+            // until you get one with the right chance? So a lower-than map of double->ore?)
             ICaveOre ore = ores.get(index);
             if (!ore.canGen(pos)) return false;
             if (rand.nextDouble() > ore.chance()) return false;
-            ore.oreGenerator().genOre(primer, pos, rand);
+            ore.oreGenerator().genOre(world, pos, rand);
             return true;
         }
     }
@@ -73,12 +83,6 @@ public enum CaveOreRegistry implements ICaveOreRegistry {
             this.chance = chance;
             this.canGenPredicate = canGenPredicate;
             this.oreGen = oreGen;
-        }
-
-        public void genOre(ChunkPrimer primer, BlockPos pos, Random rand) {
-            if (!canGenPredicate.test(pos)) return;
-            if (rand.nextDouble() > chance) return;
-            oreGen.genOre(primer, pos, rand);
         }
 
         @Override

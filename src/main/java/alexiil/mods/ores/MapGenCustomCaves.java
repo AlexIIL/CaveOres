@@ -28,10 +28,10 @@ public class MapGenCustomCaves extends MapGenCaves {
     private List<BlockPos> viableCavePositions = new ArrayList<>();
 
     @Override
-    public void generate(IChunkProvider chunkProviderIn, World worldIn, int x, int z, ChunkPrimer primer) {
+    public void generate(IChunkProvider provider, World world, int x, int z, ChunkPrimer primer) {
         int i = this.range;
-        this.worldObj = worldIn;
-        this.rand.setSeed(worldIn.getSeed());
+        this.worldObj = world;
+        this.rand.setSeed(world.getSeed());
         long j = this.rand.nextLong();
         long k = this.rand.nextLong();
 
@@ -39,27 +39,13 @@ public class MapGenCustomCaves extends MapGenCaves {
             for (int i1 = z - i; i1 <= z + i; ++i1) {
                 long j1 = l * j;
                 long k1 = i1 * k;
-                this.rand.setSeed(j1 ^ k1 ^ worldIn.getSeed());
-                this.recursiveGenerate(worldIn, l, i1, x, z, primer);
+                this.rand.setSeed(j1 ^ k1 ^ world.getSeed());
+                this.recursiveGenerate(world, l, i1, x, z, primer);
             }
         }
 
-        for (BlockPos p : viableCavePositions) {
-            if (p.getX() < 0 || p.getX() > 15) continue;
-            if (p.getY() < 0 || p.getY() > 255) continue;
-            if (p.getZ() < 0 || p.getZ() > 15) continue;
-            // Check to make sure we are allowed to replace it
-            if (isCaveReplacable(primer.getBlockState(p.getX(), p.getY(), p.getZ()))) {
-                if (!CaveOreRegistry.INSTANCE.genOre(primer, p, rand)) {
-                    primer.setBlockState(p.getX(), p.getY(), p.getZ(), Blocks.planks.getDefaultState());
-                }
-            }
-        }
+        CaveTerrainGenListener.INSTANCE.addCaveData(world, x, z, viableCavePositions);
         viableCavePositions.clear();
-    }
-
-    private static boolean isCaveReplacable(IBlockState state) {
-        return CaveOreRegistry.INSTANCE.hasReplacementFor(state);
     }
 
     /** Should probably be "genCaveCaller" */
@@ -177,8 +163,8 @@ public class MapGenCustomCaves extends MapGenCaves {
                     }
 
                     if (!hitWater) {
-                        for (int in_x = rand_x_low - 1; in_x <= rand_x_high; in_x++) {
-                            for (int in_z = rand_z_low - 1; in_z <= rand_z_high; in_z++) {
+                        for (int in_x = Math.max(0, rand_x_low - 1); in_x <= Math.min(15, rand_x_high); in_x++) {
+                            for (int in_z = Math.max(0, rand_z_low - 1); in_z <= Math.min(15, rand_z_high); in_z++) {
                                 for (int in_y = rand_y_low - 1; in_y <= rand_y_high; in_y++) {
                                     // TODO: Optimizable (memory) point
                                     // Maybe this could be a pool of mutable block pos? Might help GC, not sure.

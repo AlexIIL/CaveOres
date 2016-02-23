@@ -3,8 +3,8 @@ package alexiil.mods.ores.api;
 import java.util.Random;
 
 import net.minecraft.util.BlockPos;
-import net.minecraft.world.chunk.ChunkPrimer;
+import net.minecraft.world.World;
 
 public interface IOreGenerator {
-    void genOre(ChunkPrimer primer, BlockPos pos, Random rand);
+    void genOre(World world, BlockPos pos, Random rand);
 }

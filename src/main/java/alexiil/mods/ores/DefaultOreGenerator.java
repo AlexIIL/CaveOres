@@ -4,7 +4,7 @@ import java.util.Random;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockPos;
-import net.minecraft.world.chunk.ChunkPrimer;
+import net.minecraft.world.World;
 
 import alexiil.mods.ores.api.IOreGenerator;
 
@@ -18,8 +18,8 @@ public class DefaultOreGenerator implements IOreGenerator {
     }
 
     @Override
-    public void genOre(ChunkPrimer primer, BlockPos pos, Random rand) {
+    public void genOre(World world, BlockPos pos, Random rand) {
         // TODO: Expand!
-        primer.setBlockState(pos.getX(), pos.getY(), pos.getZ(), toGen);
+        world.setBlockState(pos, toGen, 2);
     }
 }

@@ -15,6 +15,8 @@ public interface ICaveOreRegistry {
 
     void registerOre(IBlockState from, ICaveOre ore);
 
+    void unregisterOre(IBlockState from, ICaveOre ore);
+
     default void registerOre(Block from, ICaveOre ore) {
         for (IBlockState state : from.getBlockState().getValidStates()) {
             registerOre(state, ore);

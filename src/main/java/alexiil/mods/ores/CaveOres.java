@@ -18,7 +18,7 @@ public class CaveOres {
     public void preinit(FMLPreInitializationEvent event) {
         CaveOresAPI.registry = CaveOreRegistry.INSTANCE;
 
-        ICaveOre coalOre = CaveOresAPI.registry.construct(0.01, 10, 200, Blocks.coal_ore.getDefaultState(), 10);
+        ICaveOre coalOre = CaveOresAPI.registry.construct(0.001, 10, 200, Blocks.coal_ore.getDefaultState(), 10);
         CaveOresAPI.registry.registerOre(Blocks.stone.getDefaultState(), coalOre);
         // CaveOresAPI.registry.registerOre(Blocks.hardened_clay.getDefaultState(), coalOre);
         // CaveOresAPI.registry.registerOre(Blocks.stained_hardened_clay, coalOre);
@@ -27,5 +27,6 @@ public class CaveOres {
     @EventHandler
     public void init(FMLInitializationEvent event) {
         MinecraftForge.TERRAIN_GEN_BUS.register(CaveTerrainGenListener.INSTANCE);
+        MinecraftForge.ORE_GEN_BUS.register(CaveTerrainGenListener.INSTANCE);
     }
 }
