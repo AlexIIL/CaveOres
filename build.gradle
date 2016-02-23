@@ -20,7 +20,8 @@ plugins {
     id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 */
-version = "1.0"
+version = "0.1.0-alpha"
+String forge_version = "11.15.1.1761"
 group= "alexiil.mods.ores" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "CaveOres"
 
@@ -28,8 +29,14 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 minecraft {
-    version = "1.8.9-11.15.1.1761"
+    version = "1.8.9-" + forge_version
     runDir = "run"
+    
+    // replacing stuff in the source
+    replace "@VERSION@", project.version
+    replace "@MC_VERSION@", version
+    replace "@FORGE_VERSION", forge_version
+    replace "\"/* \"@DEPS@ */", "required-after:Forge@[" + forge_version + ",)"
     
     mappings = "stable_20"
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
