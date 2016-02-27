@@ -18,10 +18,11 @@ public class CaveOres {
     public void preinit(FMLPreInitializationEvent event) {
         CaveOresAPI.registry = CaveOreRegistry.INSTANCE;
 
-        ICaveOre coalOre = CaveOresAPI.registry.construct(0.001, 10, 200, Blocks.coal_ore.getDefaultState(), 10);
+        ICaveOre coalOre = CaveOresAPI.registry.construct(0.001, 23, 200, Blocks.coal_ore.getDefaultState(), 16);
         CaveOresAPI.registry.registerOre(Blocks.stone.getDefaultState(), coalOre);
-        // CaveOresAPI.registry.registerOre(Blocks.hardened_clay.getDefaultState(), coalOre);
-        // CaveOresAPI.registry.registerOre(Blocks.stained_hardened_clay, coalOre);
+
+        ICaveOre ironOre = CaveOresAPI.registry.construct(0.0006, 14, 68, Blocks.iron_ore.getDefaultState(), 7);
+        CaveOresAPI.registry.registerOre(Blocks.stone.getDefaultState(), ironOre);
     }
 
     @EventHandler

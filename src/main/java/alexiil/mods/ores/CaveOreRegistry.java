@@ -61,16 +61,19 @@ public enum CaveOreRegistry implements ICaveOreRegistry {
         private final List<ICaveOre> ores = new ArrayList<>();
 
         public boolean genOre(World world, BlockPos pos, Random rand) {
-            int index = rand.nextInt(ores.size());
-            if (index < 0) throw new IllegalStateException("Too few ores! " + ores.size());
-            // Perhaps this should be additive instead of multiplicative?
-            // (currently it has to be the right index and lower than the chance, but maybe just run through the list
-            // until you get one with the right chance? So a lower-than map of double->ore?)
-            ICaveOre ore = ores.get(index);
-            if (!ore.canGen(pos)) return false;
-            if (rand.nextDouble() > ore.chance()) return false;
-            ore.oreGenerator().genOre(world, pos, rand);
-            return true;
+            double val = rand.nextDouble();
+            for (ICaveOre ore : ores) {
+                if (!ore.canGen(pos)) continue;
+                double c = ore.chance();
+                if (val < c) {
+                    // gen
+                    ore.oreGenerator().genOre(world, pos, rand);
+                    return true;
+                } else {
+                    val -= c;
+                }
+            }
+            return false;
         }
     }
 

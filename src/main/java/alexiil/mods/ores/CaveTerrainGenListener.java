@@ -42,6 +42,7 @@ public enum CaveTerrainGenListener {
     @SuppressWarnings("static-method")
     public void generateOreEvent(GenerateMinable gen) {
         if (gen.type == GenerateMinable.EventType.COAL) gen.setResult(Result.DENY);
+        if (gen.type == GenerateMinable.EventType.IRON) gen.setResult(Result.DENY);
     }
 
     /** We technically violate the principle of ore generation (we might generate ores before a listener actually
