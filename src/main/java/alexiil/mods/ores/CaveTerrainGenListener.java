@@ -1,8 +1,6 @@
 package alexiil.mods.ores;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.ChunkCoordIntPair;
@@ -14,6 +12,8 @@ import net.minecraftforge.event.terraingen.OreGenEvent.GenerateMinable;
 import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+import alexiil.mods.ores.CaveOreRegistry.OreEntry;
 
 public enum CaveTerrainGenListener {
     INSTANCE;
@@ -65,10 +65,27 @@ public enum CaveTerrainGenListener {
             return;
         }
         int suc = 0;
+        // Make our own random for this so that changes to our algorithms don't change the outcome of other/later
+        // generation
+        Random rand = new Random(pre.rand.nextLong());
         for (BlockPos pos : arr) {
-            if (CaveOreRegistry.INSTANCE.genOre(world, pos.add(offset), pre.rand)) suc++;
+            if (genOre(world, pos.add(offset), rand)) suc++;
         }
         long diff = System.currentTimeMillis() - start;
         System.out.println("decorateChunk|arr==BlockPos[" + arr.length + "]|" + pre.pos + "|" + suc + "|" + diff + "ms");
+    }
+
+    private static boolean genOre(World world, BlockPos pos, Random rand) {
+        double c = rand.nextDouble();
+        List<OreEntry> sortedEntries = CaveOreRegistry.INSTANCE.getEntriesForGen().sequential().collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+        for (OreEntry o : sortedEntries) {
+            if (c < o.chance()) {
+                o.generator().genOre(o, world, pos, rand);
+                return true;
+            } else {
+                c -= o.chance();
+            }
+        }
+        return false;
     }
 }

@@ -1,49 +1,75 @@
 package alexiil.mods.ores.api;
 
+import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
 
 public interface ICaveOreRegistry {
-    ICaveOre construct(double chance, Predicate<BlockPos> canGenPredicate, IOreGenerator oreGen);
+    ICaveOreEntry getEntry(String oreDictionaryName);
 
-    default ICaveOre construct(double chance, int minY, int maxY, IBlockState toGen, int maxPerSeam) {
-        return construct(chance, getDefaultCanGenPredicate(minY, maxY), getDefaultGenaratorFor(toGen, maxPerSeam));
+    ICaveOreEntry getOrCreateEntry(String oreDictionaryName, Predicate<BlockPos> canGen, double chance, ICaveOreGenerator gen);
+
+    Stream<IBlockState> getReplacables();
+
+    default boolean canRelace(IBlockState state) {
+        return getReplacables().anyMatch((s2) -> s2 == state);
     }
 
-    void registerOre(IBlockState from, ICaveOre ore);
+    ICaveOreGenerator createSimpleGen(double size, double deviation);
 
-    void unregisterOre(IBlockState from, ICaveOre ore);
-
-    default void registerOre(Block from, ICaveOre ore) {
-        for (IBlockState state : from.getBlockState().getValidStates()) {
-            registerOre(state, ore);
-        }
-    }
-
-    default ICaveOre registerOre(IBlockState from, double chance, Predicate<BlockPos> canGenPredicate, IOreGenerator oreGen) {
-        ICaveOre ore = construct(chance, canGenPredicate, oreGen);
-        registerOre(from, ore);
-        return ore;
-    }
-
-    default Predicate<BlockPos> getDefaultCanGenPredicate(int yMin, int yMax) {
-        return (pos) -> (pos.getY() >= yMin && pos.getY() <= yMax);
-    }
-
-    IOreGenerator getDefaultGenaratorFor(IBlockState toGen, int max);
-
-    void unregisterAll(IBlockState from);
-
-    public interface ICaveOre {
-        void unregister();
+    public interface ICaveOreEntry {
+        /** An identifier for the ore. Should be the ore-dictionary name for the base ore block. */
+        String uniqueIdentifier();
 
         boolean canGen(BlockPos pos);
 
+        /** @return A chance between 0 and 1. 0 means that it will never generate, 1 means it will be pushed up higher
+         *         in the queue of what to gen and so might not actually generate at all if too many ores are
+         *         registered. A good number (for, say, coal) is 0.001 */
         double chance();
 
-        IOreGenerator oreGenerator();
+        /** @return A set of blockstates that will be replaced with the {@link #defaultOres()}. */
+        Set<IBlockState> defaultReplacements();
+
+        /** @return A map of replacable states -> custom replacements. If a key is in both this map and the
+         *         {@link #defaultReplacements()} set then this one will be prefered. */
+        Map<IBlockState, List<ICaveOre>> customReplacements();
+
+        default Set<IBlockState> allReplacables() {
+            Set<IBlockState> set = new HashSet<>();
+            set.addAll(defaultReplacements());
+            set.addAll(customReplacements().keySet());
+            return set;
+        }
+
+        /** @return The base ore to generate (usually a stone based one) */
+        List<ICaveOre> defaultOres();
+
+        /** @param sizeRequired The minimum size of the deposit (left to generate) for this ore to be generated
+         * @param sizeCost The size cost to deduct from generation after placing this ore.
+         * @param ore */
+        void addDefaultOre(double sizeRequired, double sizeCost, IBlockState ore);
+
+        default void addDefaultOre(double sizeCost, IBlockState ore) {
+            addDefaultOre(sizeCost, sizeCost, ore);
+        }
+
+        ICaveOreGenerator generator();
+    }
+
+    public interface ICaveOre {
+        double sizeRequired();
+
+        double sizeCost();
+
+        IBlockState ore();
+    }
+
+    public interface ICaveOreGenerator {
+        void genOre(ICaveOreEntry entry, World world, BlockPos pos, Random rand);
     }
 }

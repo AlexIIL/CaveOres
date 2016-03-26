@@ -2,101 +2,105 @@ package alexiil.mods.ores;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockPos;
-import net.minecraft.world.World;
 
 import alexiil.mods.ores.api.ICaveOreRegistry;
-import alexiil.mods.ores.api.IOreGenerator;
 
 public enum CaveOreRegistry implements ICaveOreRegistry {
     INSTANCE;
 
-    private Map<IBlockState, OreList> oreMap = new IdentityHashMap<>();
+    private final Map<String, OreEntry> entries = new HashMap<>();
 
     @Override
-    public ICaveOre construct(double chance, Predicate<BlockPos> canGenPredicate, IOreGenerator oreGen) {
-        return new OreGenEntry(chance, canGenPredicate, oreGen);
-    }
-
-    @Override
-    public IOreGenerator getDefaultGenaratorFor(IBlockState toGen, int maxPerSeam) {
-        return new DefaultOreGenerator(toGen, maxPerSeam);
+    public ICaveOreEntry getEntry(String oreDictionaryName) {
+        return null;
     }
 
     @Override
-    public void registerOre(IBlockState from, ICaveOre ore) {
-        if (!oreMap.containsKey(from)) {
-            oreMap.put(from, new OreList());
-        }
-        oreMap.get(from).ores.add(ore);
+    public ICaveOreEntry getOrCreateEntry(String oreDictionaryName, Predicate<BlockPos> canGen, double chance, ICaveOreGenerator gen) {
+        ICaveOreEntry existing = getEntry(oreDictionaryName);
+        if (existing != null) return existing;
+        OreEntry entry = new OreEntry(oreDictionaryName, canGen, chance, gen);
+        entries.put(oreDictionaryName, entry);
+        return entry;
     }
 
     @Override
-    public void unregisterOre(IBlockState from, ICaveOre ore) {
-        if (!oreMap.containsKey(from)) return;
-        OreList list = oreMap.get(from);
-        list.ores.remove(ore);
+    public Stream<IBlockState> getReplacables() {
+        return entries.values().stream().flatMap(entry -> entry.allReplacables().stream());
     }
 
     @Override
-    public void unregisterAll(IBlockState from) {
-        oreMap.remove(from);
+    public ICaveOreGenerator createSimpleGen(double size, double sizeDeviation) {
+        return new DefaultOreGenerator(size, sizeDeviation);
     }
 
-    public boolean genOre(World world, BlockPos pos, Random rand) {
-        IBlockState current = world.getBlockState(pos);
-        if (!hasReplacementFor(current)) return false;
-
-        OreList ore = oreMap.get(current);
-        return ore.genOre(world, pos, rand);
+    public Stream<OreEntry> getEntriesForGen() {
+        return entries.values().stream().sorted((a, b) -> (a.chance > b.chance) ? 1 : (a.chance < b.chance ? -1 : 0));
     }
 
-    public boolean hasReplacementFor(IBlockState state) {
-        return oreMap.containsKey(state);
-    }
+    public static class OreEntry implements ICaveOreRegistry.ICaveOreEntry {
+        private final String identifier;
+        private final Set<IBlockState> defaultReplacements = new HashSet<>();
+        private final Map<IBlockState, List<ICaveOre>> customReplacements = new HashMap<>();
+        private final Predicate<BlockPos> canGen;
+        private final double chance;
+        private final ICaveOreGenerator generator;
+        private final List<ICaveOre> defaultOres = new ArrayList<>();
 
-    private static class OreList {
-        private final List<ICaveOre> ores = new ArrayList<>();
-
-        public boolean genOre(World world, BlockPos pos, Random rand) {
-            double val = rand.nextDouble();
-            for (ICaveOre ore : ores) {
-                if (!ore.canGen(pos)) continue;
-                double c = ore.chance();
-                if (val < c) {
-                    // gen
-                    ore.oreGenerator().genOre(world, pos, rand);
-                    return true;
-                } else {
-                    val -= c;
-                }
-            }
-            return false;
-        }
-    }
-
-    public static class OreGenEntry implements ICaveOre {
-        public final double chance;
-        public final Predicate<BlockPos> canGenPredicate;
-        public final IOreGenerator oreGen;
-
-        private OreGenEntry(double chance, Predicate<BlockPos> canGenPredicate, IOreGenerator oreGen) {
+        public OreEntry(String identifier, Predicate<BlockPos> canGen, double chance, ICaveOreGenerator gen) {
+            this.identifier = identifier;
+            this.canGen = canGen;
             this.chance = chance;
-            this.canGenPredicate = canGenPredicate;
-            this.oreGen = oreGen;
+            this.generator = gen;
         }
 
         @Override
-        public void unregister() {
-            // TODO Auto-generated method stub
-            throw new AbstractMethodError("Implement this!");
+        public String uniqueIdentifier() {
+            return identifier;
+        }
+
+        @Override
+        public Set<IBlockState> defaultReplacements() {
+            return defaultReplacements;
+        }
+
+        @Override
+        public Map<IBlockState, List<ICaveOre>> customReplacements() {
+            return customReplacements;
+        }
+
+        @Override
+        public List<ICaveOre> defaultOres() {
+            return defaultOres;
+        }
+
+        @Override
+        public void addDefaultOre(double sizeRequired, double sizeCost, IBlockState ore) {
+            defaultOres.add(new ICaveOre() {
+                @Override
+                public double sizeRequired() {
+                    return sizeRequired;
+                }
+
+                @Override
+                public double sizeCost() {
+                    return sizeCost;
+                }
+
+                @Override
+                public IBlockState ore() {
+                    return ore;
+                }
+            });
         }
 
         @Override
         public boolean canGen(BlockPos pos) {
-            return canGenPredicate.test(pos);
+            return canGen.test(pos);
         }
 
         @Override
@@ -105,8 +109,8 @@ public enum CaveOreRegistry implements ICaveOreRegistry {
         }
 
         @Override
-        public IOreGenerator oreGenerator() {
-            return oreGen;
+        public ICaveOreGenerator generator() {
+            return generator;
         }
     }
 }
