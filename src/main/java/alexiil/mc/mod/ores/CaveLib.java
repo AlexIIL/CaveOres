@@ -1,4 +1,4 @@
-package alexiil.mods.ores;
+package alexiil.mc.mod.ores;
 
 public class CaveLib {
     public static final String MODID = "CaveOres";

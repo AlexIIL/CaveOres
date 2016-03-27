@@ -1,4 +1,4 @@
-package alexiil.mods.ores.api;
+package alexiil.mc.mod.ores.api;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -6,12 +6,11 @@ import java.util.stream.Stream;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockPos;
-import net.minecraft.world.World;
 
 public interface ICaveOreRegistry {
     ICaveOreEntry getEntry(String oreDictionaryName);
 
-    ICaveOreEntry getOrCreateEntry(String oreDictionaryName, Predicate<BlockPos> canGen, double chance, ICaveOreGenerator gen);
+    ICaveOreEntry getOrCreateEntry(String oreDictionaryName, Predicate<BlockPos> canGen, double chance, ICaveOreGeneratorParams gen);
 
     Stream<IBlockState> getReplacables();
 
@@ -19,7 +18,13 @@ public interface ICaveOreRegistry {
         return getReplacables().anyMatch((s2) -> s2 == state);
     }
 
-    ICaveOreGenerator createSimpleGen(double size, double deviation);
+    default ICaveOreGeneratorParams createOreGenWithNormalDistribution(double size, double deviation) {
+        return (pos, rand) -> size + rand.nextGaussian() * deviation;
+    }
+
+    default ICaveOreGeneratorParams createOreGenWithUniformDistribution(int min, int max) {
+        return (pos, rand) -> rand.nextInt(max - min) + min;
+    }
 
     public interface ICaveOreEntry {
         /** An identifier for the ore. Should be the ore-dictionary name for the base ore block. */
@@ -58,7 +63,7 @@ public interface ICaveOreRegistry {
             addDefaultOre(sizeCost, sizeCost, ore);
         }
 
-        ICaveOreGenerator generator();
+        ICaveOreGeneratorParams genParams();
     }
 
     public interface ICaveOre {
@@ -69,7 +74,8 @@ public interface ICaveOreRegistry {
         IBlockState ore();
     }
 
-    public interface ICaveOreGenerator {
-        void genOre(ICaveOreEntry entry, World world, BlockPos pos, Random rand);
+    @FunctionalInterface
+    public interface ICaveOreGeneratorParams {
+        double nextSize(BlockPos pos, Random rand);
     }
 }

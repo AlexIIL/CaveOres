@@ -1,4 +1,4 @@
-package alexiil.mods.ores;
+package alexiil.mc.mod.ores;
 
 import java.util.ArrayList;
 import java.util.List;

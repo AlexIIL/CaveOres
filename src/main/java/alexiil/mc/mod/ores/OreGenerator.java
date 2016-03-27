@@ -1,4 +1,4 @@
-package alexiil.mods.ores;
+package alexiil.mc.mod.ores;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,28 +8,19 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
-import alexiil.mods.ores.api.ICaveOreRegistry.ICaveOre;
-import alexiil.mods.ores.api.ICaveOreRegistry.ICaveOreEntry;
-import alexiil.mods.ores.api.ICaveOreRegistry.ICaveOreGenerator;
+import alexiil.mc.mod.ores.api.ICaveOreRegistry.ICaveOre;
+import alexiil.mc.mod.ores.api.ICaveOreRegistry.ICaveOreEntry;
 
-public class DefaultOreGenerator implements ICaveOreGenerator {
-    private final double size, deviation;
+public enum OreGenerator {
+    INSTANCE;
 
-    public DefaultOreGenerator(double size, double deviation) {
-        this.size = size;
-        this.deviation = deviation;
-    }
-
-    @Override
-    public void genOre(ICaveOreEntry entry, World world, BlockPos pos, Random rand) {
-        double sizeDeviation = rand.nextGaussian() * deviation;
-        double actualSize = sizeDeviation + size;
-
+    public static void genOre(ICaveOreEntry entry, World world, BlockPos pos, Random rand) {
         EnumGenPattern pattern = EnumGenPattern.values()[rand.nextInt(EnumGenPattern.values().length)];
-        pattern.generatePositions(pos, rand, actualSize, new OreGenSplitter(world, entry, pos));
+        double size = entry.genParams().nextSize(pos, rand);
+        pattern.generatePositions(pos, rand, size, new OreGenSplitter(world, entry, pos));
     }
 
-    private class OreGenSplitter implements ICaveOreGenSplit {
+    private static class OreGenSplitter implements ICaveOreGenSplit {
         private final World world;
         private final ICaveOreEntry entry;
         private final BlockPos center;

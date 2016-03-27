@@ -1,4 +1,4 @@
-package alexiil.mods.ores.api;
+package alexiil.mc.mod.ores.api;
 
 public class CaveOresAPI {
     public static ICaveOreRegistry registry;

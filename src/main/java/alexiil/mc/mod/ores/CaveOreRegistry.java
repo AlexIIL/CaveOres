@@ -1,4 +1,4 @@
-package alexiil.mods.ores;
+package alexiil.mc.mod.ores;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockPos;
 
-import alexiil.mods.ores.api.ICaveOreRegistry;
+import alexiil.mc.mod.ores.api.ICaveOreRegistry;
 
 public enum CaveOreRegistry implements ICaveOreRegistry {
     INSTANCE;
@@ -20,7 +20,7 @@ public enum CaveOreRegistry implements ICaveOreRegistry {
     }
 
     @Override
-    public ICaveOreEntry getOrCreateEntry(String oreDictionaryName, Predicate<BlockPos> canGen, double chance, ICaveOreGenerator gen) {
+    public ICaveOreEntry getOrCreateEntry(String oreDictionaryName, Predicate<BlockPos> canGen, double chance, ICaveOreGeneratorParams gen) {
         ICaveOreEntry existing = getEntry(oreDictionaryName);
         if (existing != null) return existing;
         OreEntry entry = new OreEntry(oreDictionaryName, canGen, chance, gen);
@@ -33,11 +33,6 @@ public enum CaveOreRegistry implements ICaveOreRegistry {
         return entries.values().stream().flatMap(entry -> entry.allReplacables().stream());
     }
 
-    @Override
-    public ICaveOreGenerator createSimpleGen(double size, double sizeDeviation) {
-        return new DefaultOreGenerator(size, sizeDeviation);
-    }
-
     public Stream<OreEntry> getEntriesForGen() {
         return entries.values().stream().sorted((a, b) -> (a.chance > b.chance) ? 1 : (a.chance < b.chance ? -1 : 0));
     }
@@ -48,10 +43,10 @@ public enum CaveOreRegistry implements ICaveOreRegistry {
         private final Map<IBlockState, List<ICaveOre>> customReplacements = new HashMap<>();
         private final Predicate<BlockPos> canGen;
         private final double chance;
-        private final ICaveOreGenerator generator;
+        private final ICaveOreGeneratorParams generator;
         private final List<ICaveOre> defaultOres = new ArrayList<>();
 
-        public OreEntry(String identifier, Predicate<BlockPos> canGen, double chance, ICaveOreGenerator gen) {
+        public OreEntry(String identifier, Predicate<BlockPos> canGen, double chance, ICaveOreGeneratorParams gen) {
             this.identifier = identifier;
             this.canGen = canGen;
             this.chance = chance;
@@ -109,7 +104,7 @@ public enum CaveOreRegistry implements ICaveOreRegistry {
         }
 
         @Override
-        public ICaveOreGenerator generator() {
+        public ICaveOreGeneratorParams genParams() {
             return generator;
         }
     }

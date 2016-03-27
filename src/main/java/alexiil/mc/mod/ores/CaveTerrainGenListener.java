@@ -1,4 +1,4 @@
-package alexiil.mods.ores;
+package alexiil.mc.mod.ores;
 
 import java.util.*;
 
@@ -13,7 +13,7 @@ import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import alexiil.mods.ores.CaveOreRegistry.OreEntry;
+import alexiil.mc.mod.ores.CaveOreRegistry.OreEntry;
 
 public enum CaveTerrainGenListener {
     INSTANCE;
@@ -64,15 +64,16 @@ public enum CaveTerrainGenListener {
             System.out.println("decorateChunk|arr==BlockPos[0000]|" + pre.pos);
             return;
         }
-        int suc = 0;
-        // Make our own random for this so that changes to our algorithms don't change the outcome of other/later
-        // generation
-        Random rand = new Random(pre.rand.nextLong());
+        int successes = 0;
+        // Make our own random for this so that changes to our algorithms don't change other/later generation
+        long x = pre.pos.getX() >> 4;
+        long z = pre.pos.getZ() >> 4;
+        Random rand = new Random(x + z ^ pre.world.getSeed());
         for (BlockPos pos : arr) {
-            if (genOre(world, pos.add(offset), rand)) suc++;
+            if (genOre(world, pos.add(offset), new Random(rand.nextLong()))) successes++;
         }
         long diff = System.currentTimeMillis() - start;
-        System.out.println("decorateChunk|arr==BlockPos[" + arr.length + "]|" + pre.pos + "|" + suc + "|" + diff + "ms");
+        System.out.println("decorateChunk|arr==BlockPos[" + arr.length + "]|" + pre.pos + "|" + successes + "|" + diff + "ms");
     }
 
     private static boolean genOre(World world, BlockPos pos, Random rand) {
@@ -80,7 +81,7 @@ public enum CaveTerrainGenListener {
         List<OreEntry> sortedEntries = CaveOreRegistry.INSTANCE.getEntriesForGen().sequential().collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
         for (OreEntry o : sortedEntries) {
             if (c < o.chance()) {
-                o.generator().genOre(o, world, pos, rand);
+                OreGenerator.genOre(o, world, pos, rand);
                 return true;
             } else {
                 c -= o.chance();

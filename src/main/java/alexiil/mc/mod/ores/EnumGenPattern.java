@@ -1,11 +1,11 @@
-package alexiil.mods.ores;
+package alexiil.mc.mod.ores;
 
 import java.util.*;
 
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 
-import alexiil.mods.ores.DefaultOreGenerator.ICaveOreGenSplit;
+import alexiil.mc.mod.ores.OreGenerator.ICaveOreGenSplit;
 
 public enum EnumGenPattern {
     SPHERE(EnumGenPattern::sphereGenPattern),
@@ -33,7 +33,7 @@ public enum EnumGenPattern {
             BlockPos chosen = getLowestScore(openSet, distances);
             openSet.remove(chosen);
             closedSet.add(chosen);
-            if (!DefaultOreGenerator.isSameChunk(chosen, pos)) continue;
+            if (!OreGenerator.isSameChunk(chosen, pos)) continue;
             double newSize = splitter.genOre(actualSize, chosen);
             if (newSize < actualSize) {
                 actualSize = newSize;
