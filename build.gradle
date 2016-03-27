@@ -20,9 +20,9 @@ plugins {
     id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 */
-version = "0.1.0-alpha"
+version = "1.0"
 String forge_version = "11.15.1.1761"
-group= "alexiil.mods.ores" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+group= "alexiil.mc.mod.ores" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "CaveOres"
 
 sourceCompatibility = JavaVersion.VERSION_1_8

@@ -1,14 +1,18 @@
 package alexiil.mc.mod.ores;
 
 import java.util.*;
+import java.util.function.ToDoubleFunction;
 
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Vec3;
+import net.minecraft.util.Vec3i;
 
 import alexiil.mc.mod.ores.OreGenerator.ICaveOreGenSplit;
 
 public enum EnumGenPattern {
     SPHERE(EnumGenPattern::sphereGenPattern),
+    FAT_TENDRIL(EnumGenPattern::fatTendrilGenPattern),
     TENDRIL(EnumGenPattern::tendrilGenPattern);
 
     private final IOreGenPattern pattern;
@@ -21,19 +25,66 @@ public enum EnumGenPattern {
         pattern.generateOrePositions(pos, rand, actualSize, splitter);
     }
 
-    private static void sphereGenPattern(BlockPos pos, Random rand, double actualSize, ICaveOreGenSplit splitter) {
+    private static double fatTendrilGenPattern(BlockPos pos, Random rand, double actualSize, ICaveOreGenSplit splitter) {
+        // Generate 3 faces
+        EnumFacing face1 = EnumFacing.values()[rand.nextInt(6)];
+        EnumFacing face2 = EnumFacing.values()[rand.nextInt(6)];
+        EnumFacing face3 = EnumFacing.values()[rand.nextInt(6)];
+
+        // Add up the directions
+        Vec3i direction = BlockPos.ORIGIN.add(face1.getDirectionVec()).add(face2.getDirectionVec()).add(face3.getDirectionVec());
+
+        Vec3 normalized = new Vec3(direction).normalize();
+        final int mult = 2;
+        Vec3 dir = new Vec3(normalized.xCoord * mult, normalized.yCoord * mult, normalized.zCoord * mult);
+
+        // Make 3 block offsets
+        BlockPos offset2 = new BlockPos(new Vec3(pos).add(dir));
+
+        BlockPos offset3 = new BlockPos(new Vec3(offset2).add(dir));
+
+        double forOne = actualSize / 3;
+        double leftOver = genPatternGeneric(pos, pos, rand, forOne, splitter, pos::distanceSq);
+        double forTwo = actualSize / 3 + leftOver;
+        leftOver = genPatternGeneric(pos, offset2, rand, forTwo, splitter, offset2::distanceSq);
+        double forThree = actualSize / 3 + leftOver;
+        return genPatternGeneric(pos, offset3, rand, forThree, splitter, offset3::distanceSq);
+    }
+
+    private static double tendrilGenPattern(BlockPos pos, Random rand, double actualSize, ICaveOreGenSplit splitter) {
+        // Generate 3 faces
+        EnumFacing face1 = EnumFacing.values()[rand.nextInt(6)];
+        EnumFacing face2 = EnumFacing.values()[rand.nextInt(6)];
+        EnumFacing face3 = EnumFacing.values()[rand.nextInt(6)];
+
+        // Add up the directions
+        Vec3i direction = BlockPos.ORIGIN.add(face1.getDirectionVec()).add(face2.getDirectionVec()).add(face3.getDirectionVec());
+
+        BlockPos target = new BlockPos(direction.getX() * 3, direction.getY() * 3, direction.getZ() * 3);
+
+        return genPatternGeneric(pos, pos, rand, actualSize, splitter, offset -> {
+            // Manhatten disatnce
+            return Math.abs((target.getX() - offset.getX()) + (target.getY() - offset.getY()) + (target.getZ() - offset.getZ()));
+        });
+    }
+
+    private static double sphereGenPattern(BlockPos pos, Random rand, double actualSize, ICaveOreGenSplit splitter) {
+        return genPatternGeneric(pos, pos, rand, actualSize, splitter, pos::distanceSq);
+    }
+
+    private static double genPatternGeneric(BlockPos original, BlockPos from, Random rand, double actualSize, ICaveOreGenSplit splitter, ToDoubleFunction<BlockPos> scoreFunc) {
         List<BlockPos> openSet = new ArrayList<>();
         Set<BlockPos> closedSet = new HashSet<>();
         Map<BlockPos, Double> distances = new HashMap<>();
-        distances.put(pos, Double.valueOf(0));
-        openSet.add(pos);
+        distances.put(from, Double.valueOf(0));
+        openSet.add(from);
         int fails = 100;
         while (actualSize > 0 && !openSet.isEmpty() && fails > 0) {
             Collections.shuffle(openSet, rand);
             BlockPos chosen = getLowestScore(openSet, distances);
             openSet.remove(chosen);
             closedSet.add(chosen);
-            if (!OreGenerator.isSameChunk(chosen, pos)) continue;
+            if (!OreGenerator.isSameChunk(chosen, original)) continue;
             double newSize = splitter.genOre(actualSize, chosen);
             if (newSize < actualSize) {
                 actualSize = newSize;
@@ -42,12 +93,13 @@ public enum EnumGenPattern {
                     if (closedSet.contains(offset)) continue;
                     if (openSet.contains(offset)) continue;
                     openSet.add(offset);
-                    distances.put(offset, offset.distanceSq(pos));
+                    distances.put(offset, scoreFunc.applyAsDouble(offset));
                 }
             } else {
                 fails--;
             }
         }
+        return actualSize;
     }
 
     private static <K> K getLowestScore(Collection<K> set, Map<K, Double> map) {
@@ -65,12 +117,7 @@ public enum EnumGenPattern {
         return lowestPoint;
     }
 
-    private static void tendrilGenPattern(BlockPos pos, Random rand, double actualSize, ICaveOreGenSplit splitter) {
-        // FIXME TEMP!
-        sphereGenPattern(pos, rand, actualSize, splitter);
-    }
-
     public interface IOreGenPattern {
-        void generateOrePositions(BlockPos pos, Random rand, double actualSize, ICaveOreGenSplit splitter);
+        double generateOrePositions(BlockPos pos, Random rand, double actualSize, ICaveOreGenSplit splitter);
     }
 }
