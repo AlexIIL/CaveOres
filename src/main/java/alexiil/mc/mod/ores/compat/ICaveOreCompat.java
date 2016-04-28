@@ -23,7 +23,7 @@ public interface ICaveOreCompat {
     default void postInit() {}
 
     default void doThingIfBlockExists(String modId, String blockName, AttemptType type, Consumer<Block> consumeIfExists) {
-        Block block = Block.blockRegistry.getObject(new ResourceLocation(modId, blockName));
+        Block block = Block.REGISTRY.getObject(new ResourceLocation(modId, blockName));
         if (block != null) {
             consumeIfExists.accept(block);
         } else if (type == AttemptType.SHOULD_EXIST) {

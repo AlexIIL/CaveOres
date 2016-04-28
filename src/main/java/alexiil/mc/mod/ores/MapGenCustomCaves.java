@@ -7,15 +7,16 @@ import java.util.Random;
 import com.google.common.base.Objects;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockFalling;
 import net.minecraft.block.BlockSand;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.init.Biomes;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.MapGenCaves;
 
 /** Overridden cave generator that will also add ore generation places to the sides of caves. Much cheaper than finding
@@ -28,7 +29,7 @@ public class MapGenCustomCaves extends MapGenCaves {
     private List<BlockPos> viableCavePositions = new ArrayList<>();
 
     @Override
-    public void generate(IChunkProvider provider, World world, int x, int z, ChunkPrimer primer) {
+    public void generate(World world, int x, int z, ChunkPrimer primer) {
         int i = this.range;
         this.worldObj = world;
         this.rand.setSeed(world.getSeed());
@@ -56,8 +57,7 @@ public class MapGenCustomCaves extends MapGenCaves {
 
     /** Should probably be "genCaves" */
     @Override
-    protected void func_180702_a(long seed, int chunkX, int chunkZ, ChunkPrimer primer, double randXCoord, double randYCoord, double randZCoord,
-            float randA, float randXZDir, float randYDir, int randD, int randE, double randF) {
+    protected void func_180702_a(long seed, int chunkX, int chunkZ, ChunkPrimer primer, double randXCoord, double randYCoord, double randZCoord, float randA, float randXZDir, float randYDir, int randD, int randE, double randF) {
         double x = chunkX * 16 + 8;
         double z = chunkZ * 16 + 8;
         float xzDirAlter = 0.0F;
@@ -101,10 +101,8 @@ public class MapGenCustomCaves extends MapGenCaves {
             xzDirAlter = xzDirAlter + (random.nextFloat() - random.nextFloat()) * random.nextFloat() * 4.0F;
 
             if (!flag2 && randD == randG && randA > 1.0F && randE > 0) {
-                this.func_180702_a(random.nextLong(), chunkX, chunkZ, primer, randXCoord, randYCoord, randZCoord, random.nextFloat() * 0.5F + 0.5F,
-                        randXZDir - ((float) Math.PI / 2F), randYDir / 3.0F, randD, randE, 1.0D);
-                this.func_180702_a(random.nextLong(), chunkX, chunkZ, primer, randXCoord, randYCoord, randZCoord, random.nextFloat() * 0.5F + 0.5F,
-                        randXZDir + ((float) Math.PI / 2F), randYDir / 3.0F, randD, randE, 1.0D);
+                this.func_180702_a(random.nextLong(), chunkX, chunkZ, primer, randXCoord, randYCoord, randZCoord, random.nextFloat() * 0.5F + 0.5F, randXZDir - ((float) Math.PI / 2F), randYDir / 3.0F, randD, randE, 1.0D);
+                this.func_180702_a(random.nextLong(), chunkX, chunkZ, primer, randXCoord, randYCoord, randZCoord, random.nextFloat() * 0.5F + 0.5F, randXZDir + ((float) Math.PI / 2F), randYDir / 3.0F, randD, randE, 1.0D);
                 return;
             }
 
@@ -118,8 +116,7 @@ public class MapGenCustomCaves extends MapGenCaves {
                     return;
                 }
 
-                if (randXCoord >= x - 16.0D - somethingXZ * 2.0D && randZCoord >= z - 16.0D - somethingXZ * 2.0D && randXCoord <= x + 16.0D
-                    + somethingXZ * 2.0D && randZCoord <= z + 16.0D + somethingXZ * 2.0D) {
+                if (randXCoord >= x - 16.0D - somethingXZ * 2.0D && randZCoord >= z - 16.0D - somethingXZ * 2.0D && randXCoord <= x + 16.0D + somethingXZ * 2.0D && randZCoord <= z + 16.0D + somethingXZ * 2.0D) {
                     int rand_x_low = MathHelper.floor_double(randXCoord - somethingXZ) - chunkX * 16 - 1;
                     int rand_x_high = MathHelper.floor_double(randXCoord + somethingXZ) - chunkX * 16 + 1;
                     int rand_y_low = MathHelper.floor_double(randYCoord - somethingY) - 1;
@@ -153,8 +150,7 @@ public class MapGenCustomCaves extends MapGenCaves {
                                         hitWater = true;
                                     }
 
-                                    if (l1 != rand_y_low - 1 && j1 != rand_x_low && j1 != rand_x_high - 1 && k1 != rand_z_low && k1 != rand_z_high
-                                        - 1) {
+                                    if (l1 != rand_y_low - 1 && j1 != rand_x_low && j1 != rand_x_high - 1 && k1 != rand_z_low && k1 != rand_z_high - 1) {
                                         l1 = rand_y_low;
                                     }
                                 }
@@ -185,8 +181,7 @@ public class MapGenCustomCaves extends MapGenCaves {
 
                                         if (d9 > -0.7D && d10 * d10 + d9 * d9 + d8 * d8 < 1.0D) {
                                             IBlockState stateAt = primer.getBlockState(in_x, in_y, in_z);
-                                            IBlockState stateAbove = Objects.firstNonNull(primer.getBlockState(in_x, in_y + 1, in_z), Blocks.air
-                                                    .getDefaultState());
+                                            IBlockState stateAbove = Objects.firstNonNull(primer.getBlockState(in_x, in_y + 1, in_z), Blocks.AIR.getDefaultState());
 
                                             if (isTopBlock(primer, in_x, in_y, in_z, chunkX, chunkZ)) {
                                                 foundTopBlock = true;
@@ -211,14 +206,16 @@ public class MapGenCustomCaves extends MapGenCaves {
     /** Should be called "checkIsCaveReplacable" */
     @Override
     protected boolean func_175793_a(IBlockState stateA, IBlockState stateAbove) {
-        Block[] retTrueBlocks = { Blocks.stone, Blocks.dirt, Blocks.grass, Blocks.hardened_clay, Blocks.stained_hardened_clay, Blocks.sandstone,
-            Blocks.red_sandstone, Blocks.mycelium, Blocks.snow_layer };
+        Block[] retTrueBlocks = { //
+            Blocks.STONE, Blocks.DIRT, Blocks.GRASS, Blocks.HARDENED_CLAY,//
+            Blocks.STAINED_HARDENED_CLAY, Blocks.SANDSTONE, Blocks.RED_SANDSTONE,//
+            Blocks.MYCELIUM, Blocks.SNOW_LAYER };
         final Block blockA = stateA.getBlock();
         for (Block ret : retTrueBlocks) {
             if (blockA == ret) return true;
         }
-        boolean falling = blockA == Blocks.sand || blockA == Blocks.gravel;
-        return falling && stateAbove.getBlock().getMaterial() != Material.water;
+        boolean falling = blockA instanceof BlockFalling;
+        return falling && stateAbove.getMaterial() != Material.WATER;
     }
 
     /** Recursively called by generate() */
@@ -258,14 +255,14 @@ public class MapGenCustomCaves extends MapGenCaves {
     @Override
     protected boolean isOceanBlock(ChunkPrimer data, int x, int y, int z, int chunkX, int chunkZ) {
         net.minecraft.block.Block block = data.getBlockState(x, y, z).getBlock();
-        return block == Blocks.flowing_water || block == Blocks.water;
+        return block == Blocks.FLOWING_WATER || block == Blocks.WATER;
     }
 
     // Exception biomes to make sure we generate like vanilla
     @SuppressWarnings("static-method")
     private boolean isExceptionBiome(net.minecraft.world.biome.BiomeGenBase biome) {
-        if (biome == net.minecraft.world.biome.BiomeGenBase.beach) return true;
-        if (biome == net.minecraft.world.biome.BiomeGenBase.desert) return true;
+        if (biome == Biomes.BEACH) return true;
+        if (biome == Biomes.DESERT) return true;
         return false;
     }
 
@@ -274,7 +271,7 @@ public class MapGenCustomCaves extends MapGenCaves {
     private boolean isTopBlock(ChunkPrimer data, int x, int y, int z, int chunkX, int chunkZ) {
         net.minecraft.world.biome.BiomeGenBase biome = worldObj.getBiomeGenForCoords(new BlockPos(x + chunkX * 16, 0, z + chunkZ * 16));
         IBlockState state = data.getBlockState(x, y, z);
-        return (isExceptionBiome(biome) ? state.getBlock() == Blocks.grass : state.getBlock() == biome.topBlock);
+        return (isExceptionBiome(biome) ? state.getBlock() == Blocks.GRASS : state.getBlock() == biome.topBlock);
     }
 
     /** Digs out the current block, default implementation removes stone, filler, and top block Sets the block to lava
@@ -297,13 +294,14 @@ public class MapGenCustomCaves extends MapGenCaves {
 
         if (this.func_175793_a(state, up) || state.getBlock() == top.getBlock() || state.getBlock() == filler.getBlock()) {
             if (y < 10) {
-                data.setBlockState(x, y, z, Blocks.lava.getDefaultState());
+                data.setBlockState(x, y, z, Blocks.LAVA.getDefaultState());
             } else {
-                data.setBlockState(x, y, z, Blocks.air.getDefaultState());
+                data.setBlockState(x, y, z, Blocks.AIR.getDefaultState());
 
-                if (up.getBlock() == Blocks.sand) {
-                    data.setBlockState(x, y + 1, z, up.getValue(BlockSand.VARIANT) == BlockSand.EnumType.RED_SAND ? Blocks.red_sandstone
-                            .getDefaultState() : Blocks.sandstone.getDefaultState());
+                if (up.getBlock() == Blocks.SAND) {
+                    BlockSand.EnumType type = up.getValue(BlockSand.VARIANT);
+                    boolean isRedSand = type == BlockSand.EnumType.RED_SAND;
+                    data.setBlockState(x, y + 1, z, isRedSand ? Blocks.RED_SANDSTONE.getDefaultState() : Blocks.SANDSTONE.getDefaultState());
                 }
 
                 if (foundTop && data.getBlockState(x, y - 1, z).getBlock() == filler.getBlock()) {

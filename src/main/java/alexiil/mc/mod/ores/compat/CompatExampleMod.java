@@ -6,7 +6,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockStone;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 
 import alexiil.mc.mod.ores.CaveOres;
 import alexiil.mc.mod.ores.api.CaveOresAPI;
@@ -43,10 +43,10 @@ public enum CompatExampleMod implements ICaveOreCompat {
             oreEntry.addDefaultOre(1, oreState);
 
             // We only replace stone
-            oreEntry.defaultReplacements().add(Blocks.stone.getDefaultState());
-            oreEntry.defaultReplacements().add(Blocks.stone.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE));
-            oreEntry.defaultReplacements().add(Blocks.stone.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE));
-            oreEntry.defaultReplacements().add(Blocks.stone.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE));
+            oreEntry.defaultReplacements().add(Blocks.STONE.getDefaultState());
+            oreEntry.defaultReplacements().add(Blocks.STONE.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE));
+            oreEntry.defaultReplacements().add(Blocks.STONE.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE));
+            oreEntry.defaultReplacements().add(Blocks.STONE.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE));
         });
     }
 }

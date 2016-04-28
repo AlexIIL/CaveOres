@@ -2,7 +2,7 @@ package alexiil.mc.mod.ores;
 
 import java.util.*;
 
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 
@@ -22,18 +22,18 @@ public enum CaveTerrainGenListener {
 
     @SubscribeEvent
     public void initMapGenCave(InitMapGenEvent event) {
-        System.out.println("event" + event.type);
-        if (event.type == InitMapGenEvent.EventType.CAVE) {
+        System.out.println("event" + event.getType());
+        if (event.getType() == InitMapGenEvent.EventType.CAVE) {
             // TMP for testing
-            event.newGen = new MapGenCustomCaves();
+            event.setNewGen(new MapGenCustomCaves());
         }
     }
 
     public void addCaveData(World world, int chunkX, int chunkZ, List<BlockPos> positions) {
-        if (!worldCaveData.containsKey(world.provider.getDimensionId())) {
-            worldCaveData.put(world.provider.getDimensionId(), new HashMap<>());
+        if (!worldCaveData.containsKey(world.provider.getDimension())) {
+            worldCaveData.put(world.provider.getDimension(), new HashMap<>());
         }
-        Map<ChunkCoordIntPair, BlockPos[]> map = worldCaveData.get(world.provider.getDimensionId());
+        Map<ChunkCoordIntPair, BlockPos[]> map = worldCaveData.get(world.provider.getDimension());
         BlockPos[] array = positions.toArray(new BlockPos[positions.size()]);
         map.put(new ChunkCoordIntPair(chunkX, chunkZ), array);
     }
@@ -41,8 +41,8 @@ public enum CaveTerrainGenListener {
     @SubscribeEvent
     @SuppressWarnings("static-method")
     public void generateOreEvent(GenerateMinable gen) {
-        if (gen.type == GenerateMinable.EventType.COAL) gen.setResult(Result.DENY);
-        if (gen.type == GenerateMinable.EventType.IRON) gen.setResult(Result.DENY);
+        if (gen.getType() == GenerateMinable.EventType.COAL) gen.setResult(Result.DENY);
+        if (gen.getType() == GenerateMinable.EventType.IRON) gen.setResult(Result.DENY);
     }
 
     /** We technically violate the principle of ore generation (we might generate ores before a listener actually
@@ -50,30 +50,30 @@ public enum CaveTerrainGenListener {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void decorateChunk(OreGenEvent.Pre pre) {
         long start = System.currentTimeMillis();
-        World world = pre.world;
+        World world = pre.getWorld();
         // TODO: Move logging to a seperate class, and have time stats or something
-        Map<ChunkCoordIntPair, BlockPos[]> map = worldCaveData.get(world.provider.getDimensionId());
+        Map<ChunkCoordIntPair, BlockPos[]> map = worldCaveData.get(world.provider.getDimension());
         if (map == null) {
-            System.out.println("decorateChunk|map==null|" + pre.pos);
+            System.out.println("decorateChunk|map==null|" + pre.getPos());
             return;
         }
-        BlockPos offset = pre.pos;
+        BlockPos offset = pre.getPos();
         ChunkCoordIntPair chunk = new ChunkCoordIntPair(offset.getX() >> 4, offset.getZ() >> 4);
         BlockPos[] arr = map.remove(chunk);
         if (arr == null || arr.length == 0) {
-            System.out.println("decorateChunk|arr==BlockPos[0000]|" + pre.pos);
+            System.out.println("decorateChunk|arr==BlockPos[0000]|" + pre.getPos());
             return;
         }
         int successes = 0;
         // Make our own random for this so that changes to our algorithms don't change other/later generation
-        long x = pre.pos.getX() >> 4;
-        long z = pre.pos.getZ() >> 4;
-        Random rand = new Random(x + z ^ pre.world.getSeed());
+        long x = pre.getPos().getX() >> 4;
+        long z = pre.getPos().getZ() >> 4;
+        Random rand = new Random(x + z ^ pre.getWorld().getSeed());
         for (BlockPos pos : arr) {
             if (genOre(world, pos.add(offset), new Random(rand.nextLong()))) successes++;
         }
         long diff = System.currentTimeMillis() - start;
-        System.out.println("decorateChunk|arr==BlockPos[" + arr.length + "]|" + pre.pos + "|" + successes + "|" + diff + "ms");
+        System.out.println("decorateChunk|arr==BlockPos[" + arr.length + "]|" + pre.getPos() + "|" + successes + "|" + diff + "ms");
     }
 
     private static boolean genOre(World world, BlockPos pos, Random rand) {

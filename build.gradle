@@ -36,6 +36,9 @@ def buildNumber = System.getenv("DRONE_BUILD_NUMBER") ?: config.fallback_build_n
 
 version = "${project.config.mc_version}-${project.config.mod_version}." + buildNumber
 
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
 minecraft {
     version = config.mc_version + "-" + config.forge_version + "-" + config.mc_version
     runDir = "run"

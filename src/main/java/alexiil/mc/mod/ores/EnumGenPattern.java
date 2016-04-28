@@ -3,10 +3,10 @@ package alexiil.mc.mod.ores;
 import java.util.*;
 import java.util.function.ToDoubleFunction;
 
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.Vec3;
-import net.minecraft.util.Vec3i;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 
 import alexiil.mc.mod.ores.OreGenerator.ICaveOreGenSplit;
 
@@ -34,14 +34,14 @@ public enum EnumGenPattern {
         // Add up the directions
         Vec3i direction = BlockPos.ORIGIN.add(face1.getDirectionVec()).add(face2.getDirectionVec()).add(face3.getDirectionVec());
 
-        Vec3 normalized = new Vec3(direction).normalize();
+        Vec3d normalized = new Vec3d(direction).normalize();
         final int mult = 2;
-        Vec3 dir = new Vec3(normalized.xCoord * mult, normalized.yCoord * mult, normalized.zCoord * mult);
+        Vec3d dir = new Vec3d(normalized.xCoord * mult, normalized.yCoord * mult, normalized.zCoord * mult);
 
         // Make 3 block offsets
-        BlockPos offset2 = new BlockPos(new Vec3(pos).add(dir));
+        BlockPos offset2 = new BlockPos(new Vec3d(pos).add(dir));
 
-        BlockPos offset3 = new BlockPos(new Vec3(offset2).add(dir));
+        BlockPos offset3 = new BlockPos(new Vec3d(offset2).add(dir));
 
         double forOne = actualSize / 3;
         double leftOver = genPatternGeneric(pos, pos, rand, forOne, splitter, pos::distanceSq);

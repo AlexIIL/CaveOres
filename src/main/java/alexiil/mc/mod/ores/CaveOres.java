@@ -37,21 +37,21 @@ public class CaveOres {
 
         ICaveOreGeneratorParams coalGen = CaveOresAPI.registry.createOreGenWithNormalDistribution(16, 10);
         ICaveOreEntry coal = CaveOresAPI.registry.getOrCreateEntry("oreCoal", (pos) -> pos.getY() >= 23 || pos.getY() <= 200, DEFAULT_FACTOR * 13, coalGen);
-        coal.addDefaultOre(1, Blocks.coal_ore.getDefaultState());
-        if (!denseOres) coal.addDefaultOre(17, 9, Blocks.coal_block.getDefaultState());
-        coal.defaultReplacements().add(Blocks.stone.getDefaultState());
-        coal.defaultReplacements().add(Blocks.stone.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE));
-        coal.defaultReplacements().add(Blocks.stone.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE));
-        coal.defaultReplacements().add(Blocks.stone.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE));
+        coal.addDefaultOre(1, Blocks.COAL_ORE.getDefaultState());
+        if (!denseOres) coal.addDefaultOre(17, 9, Blocks.COAL_BLOCK.getDefaultState());
+        coal.defaultReplacements().add(Blocks.STONE.getDefaultState());
+        coal.defaultReplacements().add(Blocks.STONE.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE));
+        coal.defaultReplacements().add(Blocks.STONE.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE));
+        coal.defaultReplacements().add(Blocks.STONE.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE));
 
         ICaveOreGeneratorParams ironGen = CaveOresAPI.registry.createOreGenWithNormalDistribution(8, 3);
         ICaveOreEntry iron = CaveOresAPI.registry.getOrCreateEntry("oreIron", (pos) -> pos.getY() >= 14 || pos.getY() <= 120, DEFAULT_FACTOR * 6, ironGen);
-        iron.addDefaultOre(1, Blocks.iron_ore.getDefaultState());
-        if (!denseOres) iron.addDefaultOre(17, 9, Blocks.iron_block.getDefaultState());
-        iron.defaultReplacements().add(Blocks.stone.getDefaultState());
-        iron.defaultReplacements().add(Blocks.stone.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE));
-        iron.defaultReplacements().add(Blocks.stone.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE));
-        iron.defaultReplacements().add(Blocks.stone.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE));
+        iron.addDefaultOre(1, Blocks.IRON_ORE.getDefaultState());
+        if (!denseOres) iron.addDefaultOre(17, 9, Blocks.IRON_BLOCK.getDefaultState());
+        iron.defaultReplacements().add(Blocks.STONE.getDefaultState());
+        iron.defaultReplacements().add(Blocks.STONE.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE));
+        iron.defaultReplacements().add(Blocks.STONE.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE));
+        iron.defaultReplacements().add(Blocks.STONE.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE));
 
         boolean optionWood = true;
 
@@ -65,13 +65,13 @@ public class CaveOres {
         IBlockState[][] arr = { { null, null }, { null, null }, { null, null }, { null, null }, { null, null }, { null, null } };
         for (int i = 0; i < 4; i++) {
             BlockPlanks.EnumType type = BlockPlanks.EnumType.values()[i];
-            arr[i][0] = Blocks.planks.getDefaultState().withProperty(BlockPlanks.VARIANT, type);
-            arr[i][1] = Blocks.log.getDefaultState().withProperty(BlockOldLog.VARIANT, type);
+            arr[i][0] = Blocks.PLANKS.getDefaultState().withProperty(BlockPlanks.VARIANT, type);
+            arr[i][1] = Blocks.LOG.getDefaultState().withProperty(BlockOldLog.VARIANT, type);
         }
         for (int i = 0; i < 2; i++) {
             BlockPlanks.EnumType type = BlockPlanks.EnumType.values()[i + 4];
-            arr[i + 4][0] = Blocks.planks.getDefaultState().withProperty(BlockPlanks.VARIANT, type);
-            arr[i + 4][1] = Blocks.log2.getDefaultState().withProperty(BlockNewLog.VARIANT, type);
+            arr[i + 4][0] = Blocks.PLANKS.getDefaultState().withProperty(BlockPlanks.VARIANT, type);
+            arr[i + 4][1] = Blocks.LOG2.getDefaultState().withProperty(BlockNewLog.VARIANT, type);
         }
 
         for (int i = 0; i < arr.length; i++) {
@@ -81,18 +81,18 @@ public class CaveOres {
             ICaveOreEntry entry = CaveOresAPI.registry.getOrCreateEntry("plank" + StringUtils.capitalize(type.name()), (pos) -> pos.getY() >= 14 && pos.getY() <= 120, DEFAULT_FACTOR * 5, gen);
             entry.addDefaultOre(1, ar[0]);
             if (!denseOres) entry.addDefaultOre(13, 5, ar[1]);
-            entry.defaultReplacements().add(Blocks.stone.getDefaultState());
-            entry.defaultReplacements().add(Blocks.stone.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE));
-            entry.defaultReplacements().add(Blocks.stone.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE));
-            entry.defaultReplacements().add(Blocks.stone.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE));
+            entry.defaultReplacements().add(Blocks.STONE.getDefaultState());
+            entry.defaultReplacements().add(Blocks.STONE.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE));
+            entry.defaultReplacements().add(Blocks.STONE.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE));
+            entry.defaultReplacements().add(Blocks.STONE.getDefaultState().withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE));
         }
     }
 
     private static void registerClayAsOre() {
         ICaveOreGeneratorParams gen = CaveOresAPI.registry.createOreGenWithNormalDistribution(16, 10);
         ICaveOreEntry entry = CaveOresAPI.registry.getOrCreateEntry("oreClay", (pos) -> pos.getY() >= 19 && pos.getY() <= 43, DEFAULT_FACTOR * 3, gen);
-        entry.addDefaultOre(1, Blocks.clay.getDefaultState());
-        entry.defaultReplacements().add(Blocks.stone.getDefaultState());
+        entry.addDefaultOre(1, Blocks.CLAY.getDefaultState());
+        entry.defaultReplacements().add(Blocks.STONE.getDefaultState());
     }
 
     @EventHandler
