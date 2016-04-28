@@ -1,45 +1,57 @@
-
-// For those who want the bleeding edge
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
         }
+        maven {
+            name = "sonatype"
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+        classpath "net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT"
     }
 }
-apply plugin: 'net.minecraftforge.gradle.forge'
 
-/*
-// for people who want stable - not yet functional for MC 1.8.8 - we require the forgegradle 2.1 snapshot
-plugins {
-    id "net.minecraftforge.gradle.forge" version "2.0.2"
+apply plugin: "net.minecraftforge.gradle.forge" // adds the forge dependency
+apply plugin: 'maven' // for uploading to a maven repo
+
+ext.configFile = file "build.properties"
+configFile.withReader {
+    // Load config. It shall from now be referenced as simply config or project.config
+    def prop = new Properties()
+    prop.load(it)
+    project.ext.config = new ConfigSlurper().parse prop
 }
-*/
-version = "1.0"
-String forge_version = "11.15.1.1761"
+
 group= "alexiil.mc.mod.ores" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "CaveOres"
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+def buildNumber = System.getenv("DRONE_BUILD_NUMBER") ?: config.fallback_build_number
+
+version = "${project.config.mc_version}-${project.config.mod_version}." + buildNumber
 
 minecraft {
-    version = "1.8.9-" + forge_version
+    version = config.mc_version + "-" + config.forge_version + "-" + config.mc_version
     runDir = "run"
-    
+
+    // the mappings can be changed at any time, and must be in the following format.
+    // snapshot_YYYYMMDD   snapshot are built nightly.
+    // stable_#            stables are built at the discretion of the MCP team.
+    // Use non-default mappings at your own risk. they may not allways work.
+    // simply re-run your setup task after changing the mappings to update your workspace.
+    mappings = config.mappings_version
+    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+
+
     // replacing stuff in the source
     replace "@VERSION@", project.version
     replace "@MC_VERSION@", version
-    replace "@FORGE_VERSION", forge_version
-    replace "\"/* \"@DEPS@ */", "required-after:Forge@[" + forge_version + ",)"
-    
-    mappings = "stable_20"
-    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 }
 
 dependencies {
@@ -52,19 +64,28 @@ dependencies {
     //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
     //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
 
-    // the 'provided' configuration is for optional dependencies that exist at compile-time but might not at runtime.
-    //provided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-
-    // the deobf configurations:  'deobfCompile' and 'deobfProvided' are the same as the normal compile and provided,
-    // except that these dependencies get remapped to your current MCP mappings
-    //deobfCompile 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-    //deobfProvided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-
     // for more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
-
 }
+
+// --------------------
+// extra jar section
+// -------------------
+
+// add a source jar
+//task sourceJar(type: Jar) {
+//    from sourceSets.main.allSource
+//    classifier = 'source-code'
+//}
+
+// because the normal output has been made to be obfuscated
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'developer'
+}
+
+build.dependsOn sourceJar, deobfJar
 
 processResources
 {
