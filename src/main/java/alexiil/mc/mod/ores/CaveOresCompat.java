@@ -9,7 +9,7 @@ import alexiil.mc.mod.ores.compat.CompatDenseOres;
 import alexiil.mc.mod.ores.compat.CompatExampleMod;
 import alexiil.mc.mod.ores.compat.ICaveOreCompat;
 
-/* Compat registration classes. Add your own compat class in */
+/* Compat registration classes. Add your own compat class in here */
 public class CaveOresCompat {
     private static final List<ICaveOreCompat> compats = new ArrayList<>();
 

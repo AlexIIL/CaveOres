@@ -1,11 +1,12 @@
 package alexiil.mc.mod.ores;
 
 import java.util.*;
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 import alexiil.mc.mod.ores.api.ICaveOreRegistry;
 
@@ -20,7 +21,7 @@ public enum CaveOreRegistry implements ICaveOreRegistry {
     }
 
     @Override
-    public ICaveOreEntry getOrCreateEntry(String oreDictionaryName, Predicate<BlockPos> canGen, double chance, ICaveOreGeneratorParams gen) {
+    public ICaveOreEntry getOrCreateEntry(String oreDictionaryName, BiPredicate<World, BlockPos> canGen, double chance, ICaveOreGeneratorParams gen) {
         ICaveOreEntry existing = getEntry(oreDictionaryName);
         if (existing != null) return existing;
         OreEntry entry = new OreEntry(oreDictionaryName, canGen, chance, gen);
@@ -41,12 +42,12 @@ public enum CaveOreRegistry implements ICaveOreRegistry {
         private final String identifier;
         private final Set<IBlockState> defaultReplacements = new HashSet<>();
         private final Map<IBlockState, List<ICaveOre>> customReplacements = new HashMap<>();
-        private final Predicate<BlockPos> canGen;
+        private final BiPredicate<World, BlockPos> canGen;
         private final double chance;
         private final ICaveOreGeneratorParams generator;
         private final List<ICaveOre> defaultOres = new ArrayList<>();
 
-        public OreEntry(String identifier, Predicate<BlockPos> canGen, double chance, ICaveOreGeneratorParams gen) {
+        public OreEntry(String identifier, BiPredicate<World, BlockPos> canGen, double chance, ICaveOreGeneratorParams gen) {
             this.identifier = identifier;
             this.canGen = canGen;
             this.chance = chance;
@@ -94,8 +95,8 @@ public enum CaveOreRegistry implements ICaveOreRegistry {
         }
 
         @Override
-        public boolean canGen(BlockPos pos) {
-            return canGen.test(pos);
+        public boolean canGen(World world, BlockPos pos) {
+            return canGen.test(world, pos);
         }
 
         @Override

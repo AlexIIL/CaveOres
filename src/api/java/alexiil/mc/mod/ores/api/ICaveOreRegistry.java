@@ -1,16 +1,22 @@
 package alexiil.mc.mod.ores.api;
 
 import java.util.*;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 public interface ICaveOreRegistry {
     ICaveOreEntry getEntry(String oreDictionaryName);
 
-    ICaveOreEntry getOrCreateEntry(String oreDictionaryName, Predicate<BlockPos> canGen, double chance, ICaveOreGeneratorParams gen);
+    default ICaveOreEntry getOrCreateEntry(String oreDictionaryName, Predicate<BlockPos> canGen, double chance, ICaveOreGeneratorParams gen) {
+        return getOrCreateEntry(oreDictionaryName, (world, pos) -> canGen.test(pos), chance, gen);
+    }
+
+    ICaveOreEntry getOrCreateEntry(String oreDictionaryName, BiPredicate<World, BlockPos> canGen, double chance, ICaveOreGeneratorParams gen);
 
     Stream<IBlockState> getReplacables();
 
@@ -30,11 +36,11 @@ public interface ICaveOreRegistry {
         /** An identifier for the ore. Should be the ore-dictionary name for the base ore block. */
         String uniqueIdentifier();
 
-        boolean canGen(BlockPos pos);
+        boolean canGen(World world, BlockPos pos);
 
         /** @return A chance between 0 and 1. 0 means that it will never generate, 1 means it will be pushed up higher
          *         in the queue of what to gen and so might not actually generate at all if too many ores are
-         *         registered. A good number (for, say, coal) is 0.001 */
+         *         registered. A good number (for, say, coal) is 0.0006 */
         double chance();
 
         /** @return A set of blockstates that will be replaced with the {@link #defaultOres()}. */
