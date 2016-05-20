@@ -64,7 +64,7 @@ public enum CaveTerrainGenListener {
             }
         }, (pos) -> {
             float val = rand.nextFloat();
-            if (val < 0.1) {
+            if (val < CaveConfig.noAirChance) {
                 genOre(world, pos, new Random(rand.nextLong()));
             }
         });
